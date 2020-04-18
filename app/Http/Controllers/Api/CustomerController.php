@@ -19,7 +19,7 @@ class CustomerController extends Controller
     {
 //        return Customer::latest()->paginate(10);
 //        return CustomerResource::collection(Customer::latest()->paginate(10));
-        return new CustomerCollection(Customer::latest()->paginate(10));
+        return new CustomerCollection(Customer::orderByDesc('id')->paginate(10));
     }
 
     public function search($field, $query)
