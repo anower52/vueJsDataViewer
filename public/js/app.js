@@ -1841,10 +1841,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      editMode: false,
       query: '',
       queryField: 'name',
       customers: [],
@@ -1914,6 +1914,7 @@ __webpack_require__.r(__webpack_exports__);
       this.$snotify.success('Data Successfully Refresh', 'Success');
     },
     create: function create() {
+      this.editMode = false;
       this.form.reset();
       this.form.clear();
       $('#customerModalLong').modal('show');
@@ -1942,7 +1943,40 @@ __webpack_require__.r(__webpack_exports__);
 
         console.log(e);
       });
-    }
+    },
+    edit: function edit(customer) {
+      this.editMode = true;
+      this.form.reset();
+      this.form.clear();
+      this.form.fill(customer);
+      $('#customerModalLong').modal('show');
+    },
+    update: function update() {
+      var _this4 = this;
+
+      this.$Progress.start();
+      this.form.busy = true;
+      this.form.put('/vuedataviewer/public/api/customers/' + this.form.id).then(function (response) {
+        _this4.getData();
+
+        $('#customerModalLong').modal('hide');
+
+        if (_this4.form.successful) {
+          _this4.$Progress.finish();
+
+          _this4.$snotify.success('Customer Updated Successfully', 'Success');
+        } else {
+          _this4.$Progress.fail();
+
+          _this4.$snotify.error('Something went wrong', 'Error');
+        }
+      })["catch"](function (e) {
+        _this4.$Progress.fail();
+
+        console.log(e);
+      });
+    },
+    destroy: function destroy(customer) {}
   }
 });
 
@@ -38885,7 +38919,41 @@ var render = function() {
                                 _vm._v(" "),
                                 _c("td", [_vm._v(_vm._s(customer.total))]),
                                 _vm._v(" "),
-                                _vm._m(2, true)
+                                _c("td", { staticClass: "text-center" }, [
+                                  _vm._m(2, true),
+                                  _vm._v(" "),
+                                  _c(
+                                    "button",
+                                    {
+                                      staticClass: "btn btn-primary",
+                                      attrs: { type: "button" },
+                                      on: {
+                                        click: function($event) {
+                                          return _vm.edit(customer)
+                                        }
+                                      }
+                                    },
+                                    [_c("i", { staticClass: "fas fa-edit" })]
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "button",
+                                    {
+                                      staticClass: "btn btn-danger",
+                                      attrs: { type: "button" },
+                                      on: {
+                                        click: function($event) {
+                                          return _vm.destroy(customer)
+                                        }
+                                      }
+                                    },
+                                    [
+                                      _c("i", {
+                                        staticClass: "fas fa-trash-alt"
+                                      })
+                                    ]
+                                  )
+                                ])
                               ]
                             )
                           }),
@@ -38946,7 +39014,22 @@ var render = function() {
             { staticClass: "modal-dialog", attrs: { role: "document" } },
             [
               _c("div", { staticClass: "modal-content" }, [
-                _vm._m(4),
+                _c("div", { staticClass: "modal-header" }, [
+                  _c(
+                    "h5",
+                    {
+                      staticClass: "modal-title",
+                      attrs: { id: "customerModalLongTitle" }
+                    },
+                    [
+                      _vm._v(
+                        _vm._s(_vm.editMode ? "Edit" : "Add New") + " Customer"
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _vm._m(4)
+                ]),
                 _vm._v(" "),
                 _c(
                   "form",
@@ -38954,7 +39037,7 @@ var render = function() {
                     on: {
                       submit: function($event) {
                         $event.preventDefault()
-                        return _vm.store($event)
+                        _vm.editMode ? _vm.update() : _vm.store()
                       },
                       keydown: function($event) {
                         return _vm.form.onKeydown($event)
@@ -39250,23 +39333,11 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("td", { staticClass: "text-center" }, [
-      _c("button", { staticClass: "btn btn-info", attrs: { type: "button" } }, [
-        _c("i", { staticClass: "fas fa-eye" })
-      ]),
-      _vm._v(" "),
-      _c(
-        "button",
-        { staticClass: "btn btn-primary", attrs: { type: "button" } },
-        [_c("i", { staticClass: "fas fa-edit" })]
-      ),
-      _vm._v(" "),
-      _c(
-        "button",
-        { staticClass: "btn btn-danger", attrs: { type: "button" } },
-        [_c("i", { staticClass: "fas fa-trash-alt" })]
-      )
-    ])
+    return _c(
+      "button",
+      { staticClass: "btn btn-info", attrs: { type: "button" } },
+      [_c("i", { staticClass: "fas fa-eye" })]
+    )
   },
   function() {
     var _vm = this
@@ -39288,26 +39359,18 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "modal-header" }, [
-      _c(
-        "h5",
-        { staticClass: "modal-title", attrs: { id: "customerModalLongTitle" } },
-        [_vm._v("Add new Customer")]
-      ),
-      _vm._v(" "),
-      _c(
-        "button",
-        {
-          staticClass: "close",
-          attrs: {
-            type: "button",
-            "data-dismiss": "modal",
-            "aria-label": "Close"
-          }
-        },
-        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
-      )
-    ])
+    return _c(
+      "button",
+      {
+        staticClass: "close",
+        attrs: {
+          type: "button",
+          "data-dismiss": "modal",
+          "aria-label": "Close"
+        }
+      },
+      [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
+    )
   }
 ]
 render._withStripped = true

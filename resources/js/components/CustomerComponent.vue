@@ -13,7 +13,6 @@
                         </div>
                     </div>
                     <div class="card-body">
-
                         <div class="mb-3">
                             <div class="row">
                                 <div class="col-md-2">
@@ -56,10 +55,10 @@
                                         <button type="button" class="btn btn-info">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-primary">
+                                        <button type="button" @click="edit(customer)" class="btn btn-primary">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button type="button" class="btn btn-danger">
+                                        <button type="button" @click="destroy(customer)" class="btn btn-danger">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </td>
@@ -89,12 +88,12 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="customerModalLongTitle">Add new Customer</h5>
+                        <h5 class="modal-title" id="customerModalLongTitle">{{ editMode ? "Edit" : "Add New" }} Customer</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form @submit.prevent="store" @keydown="form.onKeydown($event)">
+                    <form @submit.prevent="editMode ? update() : store()" @keydown="form.onKeydown($event)">
                         <div class="modal-body">
                             <alert-error :form="form"></alert-error>
                             <div class="form-group">
@@ -118,7 +117,7 @@
                             <div class="form-group">
                                 <label>Address</label>
                                 <textarea v-model="form.address" name="address"
-                                       class="form-control" :class="{ 'is-invalid': form.errors.has('address') }">
+                                          class="form-control" :class="{ 'is-invalid': form.errors.has('address') }">
                                 </textarea>
                                 <has-error :form="form" field="address"></has-error>
                             </div>
@@ -147,6 +146,7 @@
     export default {
         data() {
             return {
+                editMode : false,
                 query: '',
                 queryField: 'name',
                 customers: [],
@@ -212,23 +212,22 @@
                 this.$snotify.success('Data Successfully Refresh', 'Success')
             },
             create() {
-                this.form.reset()
-                this.form.clear()
+                this.editMode = false;
+                this.form.reset();
+                this.form.clear();
                 $('#customerModalLong').modal('show')
             },
-            store(){
+            store() {
                 this.$Progress.start()
                 this.form.busy = true
                 this.form.post('/vuedataviewer/public/api/customers')
-                    .then(response =>{
+                    .then(response => {
                         this.getData()
                         $('#customerModalLong').modal('hide');
-                        if (this.form.successful)
-                        {
+                        if (this.form.successful) {
                             this.$Progress.finish()
                             this.$snotify.success('Customer Added Successfully', 'Success')
-                        }else
-                            {
+                        } else {
                             this.$Progress.fail()
                             this.$snotify.error('Something went wrong', 'Error')
                         }
@@ -237,6 +236,36 @@
                         this.$Progress.fail()
                         console.log(e)
                     })
+            },
+            edit(customer) {
+                this.editMode = true;
+                this.form.reset()
+                this.form.clear()
+                this.form.fill(customer)
+                $('#customerModalLong').modal('show')
+            },
+            update(){
+                this.$Progress.start();
+                this.form.busy = true;
+                this.form.put('/vuedataviewer/public/api/customers/'+ this.form.id)
+                    .then(response => {
+                        this.getData();
+                        $('#customerModalLong').modal('hide');
+                        if (this.form.successful) {
+                            this.$Progress.finish();
+                            this.$snotify.success('Customer Updated Successfully', 'Success')
+                        } else {
+                            this.$Progress.fail();
+                            this.$snotify.error('Something went wrong', 'Error')
+                        }
+                    })
+                    .catch(e => {
+                        this.$Progress.fail();
+                        console.log(e)
+                    })
+            },
+            destroy(customer){
+
             }
         }
     }
